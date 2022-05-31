@@ -17,3 +17,7 @@ export function getWeekDay(num) {
         return ''
     }
 }
+
+export function transformDateDay2LocalDay(dateDay) {
+    return (dateDay + 1) % 7;
+}

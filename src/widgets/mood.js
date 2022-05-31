@@ -7,7 +7,7 @@ import {
     Animated,
     TouchableOpacity
 } from 'react-native';
-import { getWeekDay } from '../utils/dataUtil';
+import { getWeekDay, transformDateDay2LocalDay } from '../utils/dataUtil';
 
 export default class Mood extends Component {
 
@@ -37,7 +37,7 @@ export default class Mood extends Component {
 
     initCurDayStatus(day) {
         let date = new Date();
-        let curDay = getWeekDay(date.getDay())
+        let curDay = getWeekDay(transformDateDay2LocalDay(date.getDay()))
         return curDay == day;
     }
 
@@ -50,6 +50,9 @@ export default class Mood extends Component {
         let score = this.props.score;
         let narHeight = rem(280) / 100 * score;
         narHeight = narHeight > 0 ? narHeight : rem(100);
+
+        let narHeightScaleVelocity = rem(280) / 400.0;
+        let narHeightScaleDuration = narHeight / narHeightScaleVelocity;
         
         let anims = [
             Animated.timing(this.state.iconScale, {
@@ -59,11 +62,11 @@ export default class Mood extends Component {
             }),
             Animated.timing(this.state.columnarHeight, {
                 toValue: narHeight,
-                duration: 200
+                duration: narHeightScaleDuration
             }),
             Animated.timing(this.state.scoreTextOpacity, {
                 toValue: 1,
-                duration: 100,
+                duration: 200,
                 useNativeDriver: true
             })
         ];
@@ -80,7 +83,7 @@ export default class Mood extends Component {
             }),
             Animated.timing(this.state.dayTextOpacity, {
                 toValue: 1,
-                duration: 200,
+                duration: 300,
                 useNativeDriver: true
             })
         ];
@@ -112,9 +115,10 @@ export default class Mood extends Component {
 
     onPress = () => {
         this.setState({
-            isSelctedStatus: true
+            isSelctedStatus: !this.state.isSelctedStatus
+        }, () => {
+            this.props.onSelectChange && this.props.onSelectChange(this.props.index, this.state.isSelctedStatus);
         });
-        this.props.onSelectChange && this.props.onSelectChange(this.props.index, true);
     }
 
     renderDay() {
@@ -148,7 +152,9 @@ export default class Mood extends Component {
         let columnarColors = this.getColumnarBgColor();
         return(
             <View style={[style.container, this.props.style]}>
-                <LinearGradient style={style.columnarBg} colors={columnarColors}>
+                <LinearGradient style={[style.columnarBg, 
+                    this.state.isSelctedStatus && this.props.score > 0 ? style.narShadow : {}]} 
+                    colors={columnarColors}>
                     <Animated.View style={[style.columnar, {height: this.state.columnarHeight}]}>
                         <Animated.Text style={[style.score, {opacity: this.state.scoreTextOpacity}]}>
                             {this.props.score > 0 ?  this.props.score :  ""}
@@ -247,11 +253,14 @@ let style = StyleSheet.create({
     columnarBg: {
         position: 'absolute', 
         bottom: rem(48), 
-        borderRadius: rem(30),
+        borderRadius: rem(30)
     },
     narShadow: {
-        position: 'absolute',
-        bottom: rem(4)
+        elevation: 6,
+        borderWidth: rem(3),
+        borderStyle: 'solid',
+        borderColor: 'rgba(255, 255, 255, 0.8)',
+        borderRadius: rem(30)
     },
     icon: {
         width: rem(36),

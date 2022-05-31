@@ -3,25 +3,37 @@ import {
     StyleSheet,
     View,
     Image,
-    Text
+    Text,
+    Animated
 } from 'react-native';
 
 export default class AccountInfo extends Component {
 
     constructor(props) {
         super(props);
+        this.state = {
+            opacityAnimation: new Animated.Value(0),
+        }
+    }
+
+    componentDidMount() {
+        Animated.timing(this.state.opacityAnimation, {
+            toValue: 1,
+            duration: 400,
+            useNativeDriver: true
+        }).start();
     }
 
     render() {
         return(
-            <View style={style.container}>
+            <Animated.View style={[style.container, {opacity: this.state.opacityAnimation}]}>
                 <View style={style.userInfo}>
                     <Image style={style.headImg} source={this.props.headImg}/>
                     <Text style={style.name}>{this.props.name}</Text>
                 </View>
                 <Text style={style.score}>{this.props.score || '0'}</Text>
                 <Text style={style.tip}>周平均心情指数</Text>
-            </View>
+            </Animated.View>
         )
     }
       
